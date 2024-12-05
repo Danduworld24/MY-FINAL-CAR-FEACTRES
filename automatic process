@@ -1,0 +1,67 @@
+def automated_testing():
+    """Automate testing of the system."""
+    global SYSTEM_ACTIVE, ALERT_ACTIVE, CRUISE_CONTROL_ON, PARKING_LIGHT_ON
+    test_iterations = 10  # Set the number of test cycles
+
+    while SYSTEM_ACTIVE and test_iterations > 0:
+        # Automate the sensor readings
+        current_speed, current_water_depth, tire_tread_depth = simulate_sensor_readings()
+        water_detected = current_water_depth > 0
+
+        # Test features based on automated inputs
+        print("\n--- Testing Hydroplaning Alert ---")
+        alert_message = hydroplaning_alert(current_speed, current_water_depth, tire_tread_depth)
+        display_on_dashboard(alert_message)
+        voice_alert(alert_message)
+
+        # Test Parking Lights and Cruise Control
+        print("\n--- Testing Parking Lights Control and Cruise Control ---")
+        control_parking_lights(current_water_depth)
+        manage_cruise_control(water_detected)
+
+        # Test Collision Detection
+        print("\n--- Testing Collision Detection ---")
+        collision_detected = collision_detection()
+        if collision_detected:
+            display_on_dashboard(f"{DANGER_SYMBOL} Obstacle detected! Slow down.")
+            voice_alert("Obstacle detected! Please slow down.")
+        else:
+            display_on_dashboard("Collision Detection: No immediate risk.")
+            voice_alert("No obstacles detected. Drive safely.")
+
+        # Test Lane Detection
+        print("\n--- Testing Lane Detection ---")
+        lane_detected = lane_detection()
+        if lane_detected:
+            display_on_dashboard("Lane Detection: Vehicle is in the correct lane.")
+        else:
+            display_on_dashboard(f"{DANGER_SYMBOL} Lane Departure detected!")
+            voice_alert("Lane Departure detected. Please steer back into your lane.")
+
+        # Test Tire Pressure Monitoring
+        tire_pressure_monitoring()
+
+        # Test Emergency Brake Assist
+        emergency_brake_assist()
+
+        # Test Adaptive Headlights
+        adaptive_headlights()
+
+        # Test Pedestrian Detection
+        pedestrian_detection()
+
+        # Test Weather Alerts
+        weather_alert()
+
+        # Simulate processing commands for stopping alerts
+        process_commands()
+
+        time.sleep(2)  # Small delay for simulation to process the next cycle
+
+        test_iterations -= 1  # Decrease iteration count
+
+    print("Test completed. Exiting...")
+    SYSTEM_ACTIVE = False  # Stop the system
+
+if __name__ == "__main__":
+    automated_testing()
