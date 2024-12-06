@@ -1,0 +1,196 @@
+import time
+import random
+
+# Simulating the system states
+class SDSS:
+    def __init__(self):
+        self.active = False
+        self.panic_active = False
+        self.emergency_contacts = ['123-456-7890', '234-567-8901', '345-678-9012']  # Default contacts
+
+    def toggle(self):
+        self.active = not self.active
+        status = "activated" if self.active else "deactivated"
+        return f"SDSS is now {status}."
+
+    def panic_button(self):
+        self.panic_active = True
+        print("Panic button pressed! Sending emergency messages to contacts.")
+        for contact in self.emergency_contacts:
+            print(f"Emergency message sent to {contact}.")
+        self.deactivate()  # Deactivate SDSS after panic mode
+        return "ALERT: Panic button activated. Emergency protocol triggered."
+
+    def deactivate(self):
+        self.active = False
+        self.panic_active = False
+        print("ALERT: All SDSS features are now deactivated. Have a safe ride.")
+        return "SDSS is off. No features are active."
+
+    def change_emergency_contacts(self, new_contacts):
+        self.emergency_contacts = new_contacts
+        print("Emergency contacts updated.")
+        return f"New emergency contacts: {', '.join(self.emergency_contacts)}"
+
+    def check_hydroplaning(self, speed, water_depth):
+        if water_depth >= 5 and speed > 50:
+            return "ALERT: High hydroplaning risk! Reduce speed below 50 km/h."
+        elif water_depth > 0 and speed > 60:
+            return "ALERT: Moderate hydroplaning risk. Slow down."
+        else:
+            return "No hydroplaning risk detected."
+
+    def fatigue_monitoring(self, hours_driven):
+        if hours_driven > 3:
+            return "ALERT: You have been driving for more than 3 hours. Please take a break."
+        return "You are good to go."
+
+    def tire_condition(self, tread_depth):
+        if tread_depth < 3:
+            return "ALERT: Tire tread depth is low. Replace tires soon."
+        return "Tire condition is good."
+
+    def weather_conditions(self, rain_detected):
+        if rain_detected:
+            return "ALERT: Weather Alert: Rain detected. Adjust speed and be cautious."
+        return "No weather alert."
+
+    def lane_change_alert(self, signaling):
+        if not signaling:
+            return "ALERT: Please signal before changing lanes."
+        return "Lane change successful."
+
+    def collision_detection(self, car_in_front):
+        if car_in_front:
+            return "ALERT: Collision risk detected! Please slow down."
+        return "No collision detected."
+
+    def adaptive_cruise_control(self, car_in_front, speed):
+        if car_in_front:
+            return f"ALERT: Adaptive cruise control activated. Maintaining safe distance at {speed} km/h."
+        return "Cruise control active. Maintaining speed."
+
+    def blind_spot_detection(self, vehicle_detected):
+        if vehicle_detected:
+            return "ALERT: Warning: Vehicle detected in your blind spot!"
+        return "Blind spot clear."
+
+    def lane_departure_warning(self, out_of_lane):
+        if out_of_lane:
+            return "ALERT: Lane departure detected. Please steer back into your lane."
+        return "Lane departure not detected."
+
+    def stop_signal_awareness(self, signal_detected):
+        if signal_detected:
+            return "ALERT: Traffic signal detected. Please prepare to stop."
+        return "No signal detected."
+
+    def auto_parking_assist(self, parking_space_available):
+        if parking_space_available:
+            return "ALERT: Auto parking assist activated. Parking in progress."
+        return "No parking space available."
+
+    # New Feature 1: Driver Distraction Monitoring
+    def driver_distraction(self, distracted):
+        if distracted:
+            return "ALERT: Driver distraction detected. Please focus on the road."
+        return "Driver is focused on the road."
+
+    # New Feature 2: Lane Change Alerts
+    def lane_change_alert(self, signaling):
+        if not signaling:
+            return "ALERT: Please signal before changing lanes."
+        return "Lane change successful."
+
+    # New Feature 3: Intelligent Speed Adaptation
+    def intelligent_speed_adaptation(self, speed, max_speed):
+        if speed > max_speed:
+            return f"ALERT: You are exceeding the speed limit. Slow down to {max_speed} km/h."
+        return f"Speed is within limit. Your speed is {speed} km/h."
+
+    # New Feature 4: Geofencing Speed Control
+    def geofencing_speed_control(self, current_location, speed_limit_zone):
+        if current_location in speed_limit_zone:
+            return f"ALERT: Speed limit is {speed_limit_zone[current_location]} km/h in this area. Adjust speed accordingly."
+        return "No speed limit zone detected."
+
+# Test function for SDSS system
+def run_test_cases(sdss):
+    print("Testing SDSS system...\n")
+    
+    # Feature 1: Toggle SDSS
+    print(sdss.toggle())  # Activating SDSS
+    time.sleep(1)
+    
+    # Feature 2: Hydroplaning detection
+    print(sdss.check_hydroplaning(80, 5))  # Speed 80 km/h, water depth 5mm
+    time.sleep(1)
+    
+    # Feature 3: Fatigue monitoring
+    print(sdss.fatigue_monitoring(4))  # Driving for 4 hours
+    time.sleep(1)
+    
+    # Feature 4: Tire condition monitoring
+    print(sdss.tire_condition(2))  # Low tread depth
+    time.sleep(1)
+    
+    # Feature 5: Weather conditions
+    print(sdss.weather_conditions(True))  # Rain detected
+    time.sleep(1)
+    
+    # Feature 6: Lane change alert
+    print(sdss.lane_change_alert(False))  # No signaling
+    time.sleep(1)
+    
+    # Feature 7: Collision detection
+    print(sdss.collision_detection(True))  # Car detected in front
+    time.sleep(1)
+    
+    # Feature 8: Adaptive cruise control
+    print(sdss.adaptive_cruise_control(True, 60))  # Car in front, maintaining 60 km/h speed
+    time.sleep(1)
+    
+    # Feature 9: Blind spot detection
+    print(sdss.blind_spot_detection(True))  # Vehicle in blind spot
+    time.sleep(1)
+    
+    # Feature 10: Lane departure warning
+    print(sdss.lane_departure_warning(True))  # Drifting out of lane
+    time.sleep(1)
+    
+    # Feature 11: Traffic signal awareness
+    print(sdss.stop_signal_awareness(True))  # Signal detected
+    time.sleep(1)
+    
+    # Feature 12: Auto parking assist
+    print(sdss.auto_parking_assist(True))  # Parking space available
+    time.sleep(1)
+    
+    # Feature 13: Panic button activation
+    print(sdss.panic_button())  # Panic button pressed
+    time.sleep(1)
+    
+    # Feature 14: Changing emergency contacts
+    print(sdss.change_emergency_contacts(['456-789-0123', '567-890-1234', '678-901-2345']))
+    time.sleep(1)
+    
+    # Feature 15: Driver Distraction Monitoring
+    print(sdss.driver_distraction(True))  # Driver distracted
+    time.sleep(1)
+    
+    # Feature 16: Intelligent Speed Adaptation
+    print(sdss.intelligent_speed_adaptation(120, 100))  # Speed 120 km/h, max speed 100 km/h
+    time.sleep(1)
+
+    # Feature 17: Geofencing Speed Control
+    print(sdss.geofencing_speed_control("downtown", {"downtown": 40}))  # In speed-limited area
+
+    # Feature 18: Deactivating SDSS
+    print(sdss.deactivate())  # Deactivating SDSS
+    time.sleep(1)
+
+
+# Main program to run the features
+if __name__ == "__main__":
+    sdss = SDSS()  # Initialize SDSS object
+    run_test_cases(sdss)
