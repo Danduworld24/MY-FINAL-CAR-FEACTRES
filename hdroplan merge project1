@@ -1,0 +1,261 @@
+import time
+import random
+import pyttsx3  # For voice alerts
+import speech_recognition as sr  # For voice commands
+import requests  # For weather conditions
+import cv2  # For collision detection
+
+# Initialize the text-to-speech engine
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+voices = engine.getProperty('voices')
+for voice in voices:
+    if 'male' in voice.name.lower():  # Indian male voice
+        engine.setProperty('voice', voice.id)
+        break
+
+# Constants
+DANGER_SYMBOL = "⚠️"
+BRAKE_WARNING = " Slow down. Avoid sudden braking."
+API_KEY = 'your_api_key_here'  # Replace with your OpenWeatherMap API key
+CITY = 'Chennai'
+WEATHER_URL = f'http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric'
+
+# System states
+PARKING_LIGHT_ON = False
+CRUISE_CONTROL_ON = True
+SYSTEM_ACTIVE = True  # To control system-wide activation
+ALERT_ACTIVE = True  # To control alert state
+sdss_active = False
+water_detected = False
+speed = 50  # Default starting speed (in km/h)
+tire_tread_depth = 0
+driver_fatigue_time = 0
+emergency_contacts = ["911", "112", "12345"]
+
+# Helper functions
+def alert(message):
+    print(f"ALERT: {message}")
+    engine.say(message)
+    engine.runAndWait()
+
+def get_weather_conditions():
+    """Fetch current weather conditions from OpenWeatherMap."""
+    try:
+        response = requests.get(WEATHER_URL)
+        data = response.json()
+        if response.status_code == 200 and 'weather' in data:
+            return data['weather'][0]['description']
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching weather data: {e}")
+        return None
+
+def check_tire_condition():
+    # Tire tread depth simulation (in mm)
+    return random.randint(2, 7)
+
+def check_water_depth():
+    # Simulate water depth on the road (in mm)
+    return random.randint(0, 20)
+
+def detect_lane_departure():
+    # Simulate lane departure detection
+    return random.choice([True, False])
+
+def panic_button_pressed():
+    # Simulate panic button press
+    return random.choice([True, False])
+
+def is_flood_warning():
+    # Simulate flood warnings based on real-time data
+    return get_weather_conditions() == "flash flood"
+
+def suggest_safe_route():
+    # Simulate route suggestion to avoid flood zones
+    return random.choice([True, False])
+
+def hydroplaning_alert(water_depth):
+    if water_depth > 5:
+        alert(f"Warning: High hydroplaning risk detected. Reduce speed below 50 km/h.")
+
+def emergency_protocol():
+    # Emergency protocol when panic button is pressed
+    alert("Panic button pressed! Activating emergency protocols...")
+    for contact in emergency_contacts:
+        alert(f"Emergency contact: {contact} has been alerted.")
+    alert("Help is on the way! Stay calm.")
+
+def simulate_sensor_readings():
+    """Simulate sensor readings for speed, water depth, and tire tread depth."""
+    global speed, tire_tread_depth
+    speed = float(input("Enter the current speed of the vehicle (km/h): "))
+    current_water_depth = float(input("Enter the current water depth on the road (mm): "))
+    tire_tread_depth = float(input("Enter the tire tread depth (mm): "))
+    return speed, current_water_depth, tire_tread_depth
+
+def control_parking_lights(water_depth):
+    """Control parking lights based on water depth."""
+    global PARKING_LIGHT_ON
+    if water_depth > 0 and not PARKING_LIGHT_ON:
+        print("Parking lights ON")
+        alert("Parking lights activated.")
+        PARKING_LIGHT_ON = True
+    elif water_depth == 0 and PARKING_LIGHT_ON:
+        print("Parking lights OFF")
+        alert("Parking lights deactivated.")
+        PARKING_LIGHT_ON = False
+
+def manage_cruise_control(water_detected):
+    """Automatically turn off cruise control if water is detected."""
+    global CRUISE_CONTROL_ON
+    if water_detected and CRUISE_CONTROL_ON:
+        print("Cruise control OFF due to water detection.")
+        alert("Cruise control deactivated.")
+        CRUISE_CONTROL_ON = False
+    elif not water_detected and not CRUISE_CONTROL_ON:
+        CRUISE_CONTROL_ON = True
+        print("Cruise control restored.")
+        alert("Cruise control reactivated.")
+
+def process_commands():
+    """Listen for 'stop alerting' command to deactivate alerts."""
+    global ALERT_ACTIVE  # Declare global to modify ALERT_ACTIVE
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening for 'stop alerting' command...")
+        recognizer.adjust_for_ambient_noise(source)  # Adjust for ambient noise
+        try:
+            audio = recognizer.listen(source, timeout=5)  # Listen for 5 seconds
+            command = recognizer.recognize_google(audio).lower()  # Recognize the command
+            print(f"Command received: {command}")  # Debug: Print recognized command
+            if "stop alerting" in command:
+                ALERT_ACTIVE = False
+                alert("Alerts deactivated. Have a safe journey.")
+        except sr.UnknownValueError:
+            print("Could not understand the command.")  # Debug: Print if command is not understood
+        except sr.RequestError as e:
+            print(f"Error with the speech recognition service: {e}")  # Handle errors from the Google API
+        except Exception as e:
+            print(f"Error during voice recognition: {e}")  # Catch all other exceptions
+
+# Collision Detection: Camera and Frame Processing
+def collision_detection():
+    """Basic collision detection using OpenCV for real-time camera feed."""
+    cap = cv2.VideoCapture(0)  # Initialize camera
+    if not cap.isOpened():
+        alert("Error: Failed to capture frame from camera 0.")
+        return
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            alert("Error: Failed to capture frame from camera.")
+            break
+
+        # Add object detection algorithm here (can use pre-trained models like YOLO or others)
+        # Currently, we are using a simple frame display for simulation
+        cv2.imshow("Camera Feed", frame)
+
+        # Break the loop if 'q' key is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Main system loop
+def run_sdss():
+    global SYSTEM_ACTIVE, CRUISE_CONTROL_ON, PARKING_LIGHT_ON, ALERT_ACTIVE
+    global sdss_active, water_detected, speed, tire_tread_depth, driver_fatigue_time
+
+    print("Press '1' to toggle SDSS manually, '2' to stop system:")
+    
+    while SYSTEM_ACTIVE:
+        user_input = input("\nEnter your choice: ").strip()
+
+        if user_input == '1':
+            sdss_active = not sdss_active
+            if sdss_active:
+                alert("SDSS is now activated. Monitoring features...")
+            else:
+                alert("SDSS is now deactivated. Have a safe ride.")
+
+        if sdss_active:
+            print("\nSDSS is active. Monitoring features...\n")
+            
+            # Process sensor readings
+            current_speed, current_water_depth, tire_tread_depth = simulate_sensor_readings()
+            water_detected = current_water_depth > 0
+
+            # Fetch weather conditions
+            weather_description = get_weather_conditions()
+
+            # Activate parking lights and manage cruise control immediately if water is detected
+            control_parking_lights(current_water_depth)
+            manage_cruise_control(water_detected)
+
+            # Generate hydroplaning alerts and display on the dashboard
+            if ALERT_ACTIVE:
+                hydroplaning_alert(current_water_depth)
+
+            # Continuously process commands to stop alerts
+            process_commands()
+
+            # 1. Hydroplaning Detection and Warning
+            if current_water_depth > 5:
+                water_detected = True
+                alert(f"High water level detected on the road. Water depth: {current_water_depth} mm.")
+                hydroplaning_alert(current_water_depth)
+            
+            # 2. Flood Detection based on Weather
+            if is_flood_warning():
+                alert("Flood warning: Flash flood detected ahead. Slow down and follow alerts.")
+
+            # 3. Adaptive Cruise Control with Flood Mode
+            if current_water_depth > 5:
+                alert("Flood mode activated: Reducing speed for safety.")
+                speed = max(speed - 10, 30)  # Reduce speed in flood-prone areas
+            
+            # 4. Intelligent Speed Adaptation in Flood Zones
+            if current_water_depth > 5:
+                alert(f"Speed adjusted for flood zone. Current speed: {speed} km/h.")
+
+            # 5. Real-Time Traffic and Weather Alerts
+            if weather_description == "rain" or weather_description == "heavy rain":
+                alert(f"Weather alert: {weather_description}. Drive cautiously.")
+            
+            # 6. Flood Emergency Protocol
+            if panic_button_pressed():
+                emergency_protocol()
+            
+            # 7. Tire Condition Monitoring
+            tire_tread_depth = check_tire_condition()
+            if tire_tread_depth < 3:
+                alert("Tire tread depth is low. Please check your tires soon.")
+            
+            # 8. Lane Departure Warning and Correction
+            if detect_lane_departure():
+                alert("Warning: Lane departure detected. Please steer back into your lane.")
+
+            # 9. Flood-Specific Route Suggestions
+            if suggest_safe_route():
+                alert("Safe route suggested to avoid flood-prone areas.")
+
+            # 10. Vehicle-to-Vehicle Communication (V2V)
+            if random.choice([True, False]):  # Randomly simulate V2V communication
+                alert("V2V alert: Flood detected ahead. Slow down.")
+            
+            # 11. Collision Detection
+            collision_detection()
+
+            # Wait for the next check
+            time.sleep(2)
+        
+        elif user_input == '2':
+            print("System stopping...")
+            SYSTEM_ACTIVE = False
+
+# Start the system
+run_sdss()
