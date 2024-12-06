@@ -1,0 +1,211 @@
+import time
+import pyttsx3
+import speech_recognition as sr
+import requests
+import cv2
+from threading import Thread
+
+# Initialize the text-to-speech engine
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+voices = engine.getProperty('voices')
+for voice in voices:
+    if 'male' in voice.name.lower():  # Indian male voice
+        engine.setProperty('voice', voice.id)
+        break
+
+# Constants
+DANGER_SYMBOL = "⚠️"
+BRAKE_WARNING = " Slow down. Avoid sudden braking."
+API_KEY = 'your_api_key_here'  # Replace with your OpenWeatherMap API key
+CITY = 'Chennai'
+WEATHER_URL = f'http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric'
+
+# System states
+PARKING_LIGHT_ON = False
+CRUISE_CONTROL_ON = True
+SYSTEM_ACTIVE = False  # SDSS starts deactivated
+ALERT_ACTIVE = True  # To control alert state
+HYDROPLANING_ACTIVE = False
+
+# Simulated Dashboard Display Function
+def display_on_dashboard(message):
+    """Simulate displaying a message on the vehicle's dashboard."""
+    print(f"Dashboard: {message}")
+
+def voice_alert(message):
+    """Provide audio alerts to the driver."""
+    engine.say(message)
+    engine.runAndWait()
+
+def get_weather_conditions():
+    """Fetch current weather conditions from OpenWeatherMap."""
+    try:
+        response = requests.get(WEATHER_URL)
+        data = response.json()
+        if response.status_code == 200 and 'weather' in data:
+            return data['weather'][0]['description']
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching weather data: {e}")
+        return None
+
+def simulate_sensor_readings():
+    """Simulate sensor readings for speed, water depth, and tire tread depth."""
+    current_speed = float(input("Enter the current speed of the vehicle (km/h): "))
+    current_water_depth = float(input("Enter the current water depth on the road (mm): "))
+    tire_tread_depth = float(input("Enter the tire tread depth (mm): "))
+    return current_speed, current_water_depth, tire_tread_depth
+
+def control_parking_lights(water_depth):
+    """Control parking lights based on water depth."""
+    global PARKING_LIGHT_ON
+    if water_depth > 0 and not PARKING_LIGHT_ON:
+        print("Parking lights ON")
+        display_on_dashboard("Parking lights activated.")
+        PARKING_LIGHT_ON = True
+    elif water_depth == 0 and PARKING_LIGHT_ON:
+        print("Parking lights OFF")
+        display_on_dashboard("Parking lights deactivated.")
+        PARKING_LIGHT_ON = False
+
+def manage_cruise_control(water_detected):
+    """Automatically turn off cruise control if water is detected."""
+    global CRUISE_CONTROL_ON
+    if water_detected and CRUISE_CONTROL_ON:
+        print("Cruise control OFF due to water detection.")
+        display_on_dashboard("Cruise control deactivated.")
+        voice_alert("Cruise control turned off due to water detection.")
+        CRUISE_CONTROL_ON = False
+    elif not water_detected and not CRUISE_CONTROL_ON:
+        CRUISE_CONTROL_ON = True
+        print("Cruise control restored.")
+        display_on_dashboard("Cruise control reactivated.")
+
+def hydroplaning_alert(speed, water_depth, tread_depth, weather_condition):
+    """Generate alerts based on hydroplaning risk and weather conditions."""
+    if water_depth > 0:
+        if weather_condition == 'rain' or weather_condition == 'heavy rain':
+            if speed > 80 and water_depth > 6:
+                return f"{DANGER_SYMBOL} High hydroplaning risk! Reduce speed below 50 km/h. Water depth: {water_depth} mm"
+            elif speed > 50 and water_depth > 4:
+                return f"{DANGER_SYMBOL} Medium hydroplaning risk! Reduce speed. Water depth: {water_depth} mm"
+            else:
+                return f"✅ Safe to proceed. Water depth: {water_depth} mm, Weather: {weather_condition}"
+        else:
+            if speed > 50 and water_depth > 4:
+                return f"{DANGER_SYMBOL} Medium hydroplaning risk! Reduce speed. Water depth: {water_depth} mm"
+            else:
+                return f"✅ Road is clear. Safe to proceed. Water depth: {water_depth} mm"
+    return "✅ Road is clear. Safe to proceed."
+
+def toggle_sdss():
+    """Toggle the SDSS system on or off."""
+    global SYSTEM_ACTIVE
+    SYSTEM_ACTIVE = not SYSTEM_ACTIVE
+    if SYSTEM_ACTIVE:
+        display_on_dashboard("SDSS is now activated.")
+        voice_alert("SDSS is now activated.")
+    else:
+        display_on_dashboard("SDSS is now deactivated. Have a safe journey.")
+        voice_alert("SDSS is now deactivated. Have a safe journey.")
+
+def process_commands():
+    """Listen for SDSS activation or deactivation commands."""
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening for SDSS activation/deactivation commands...")
+        recognizer.adjust_for_ambient_noise(source)
+        try:
+            audio = recognizer.listen(source, timeout=5)
+            command = recognizer.recognize_google(audio).lower()
+            print(f"Command received: {command}")
+            if "turn on sdss" in command:
+                if not SYSTEM_ACTIVE:
+                    toggle_sdss()
+            elif "turn off sdss" in command:
+                if SYSTEM_ACTIVE:
+                    toggle_sdss()
+            elif "stop alerting" in command:
+                global ALERT_ACTIVE
+                ALERT_ACTIVE = False
+                voice_alert("All alerts have been stopped. Have a safe journey.")
+                display_on_dashboard("Alerts are now deactivated.")
+        except sr.WaitTimeoutError:
+            print("Listening timed out, no command received.")
+        except sr.UnknownValueError:
+            print("Could not understand the command.")
+        except sr.RequestError as e:
+            print(f"Error with the speech recognition service: {e}")
+
+def collision_detection():
+    """Basic collision detection using OpenCV for real-time camera feed."""
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        display_on_dashboard("Error: Failed to capture frame from camera 0.")
+        return
+
+    while SYSTEM_ACTIVE:
+        ret, frame = cap.read()
+        if not ret:
+            display_on_dashboard("Error: Failed to capture frame from camera.")
+            break
+        cv2.imshow("Camera Feed", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+def system_loop():
+    """Main SDSS processing loop."""
+    global SYSTEM_ACTIVE, ALERT_ACTIVE, HYDROPLANING_ACTIVE
+    while True:
+        if SYSTEM_ACTIVE:
+            try:
+                current_speed, current_water_depth, tire_tread_depth = simulate_sensor_readings()
+                weather_condition = get_weather_conditions()
+                water_detected = current_water_depth > 0
+
+                # Detect Hydroplaning
+                if water_detected:
+                    hydroplaning_response = input("Water detected on tires. Activate hydroplaning feature? (yes/no): ")
+                    if hydroplaning_response.lower() == "yes":
+                        hydroplaning_alert_msg = hydroplaning_alert(current_speed, current_water_depth, tire_tread_depth, weather_condition)
+                        display_on_dashboard(hydroplaning_alert_msg)
+                        voice_alert(hydroplaning_alert_msg)
+                        HYDROPLANING_ACTIVE = True
+                    else:
+                        voice_alert("Please monitor the road conditions closely.")
+                        display_on_dashboard("Monitoring for water detection...")
+
+                # Manage features based on conditions
+                control_parking_lights(current_water_depth)
+                manage_cruise_control(water_detected)
+
+                # Handle alerts based on conditions
+                if ALERT_ACTIVE:
+                    alert_message = hydroplaning_alert(current_speed, current_water_depth, tire_tread_depth, weather_condition)
+                    display_on_dashboard(alert_message)
+                    voice_alert(alert_message)
+
+                collision_detection()
+                time.sleep(2)
+            except ValueError:
+                print("Invalid input. Please enter numeric values.")
+        else:
+            time.sleep(1)
+
+def main():
+    Thread(target=system_loop, daemon=True).start()
+
+    while True:
+        print("\nPress '1' to toggle SDSS manually.")
+        manual_input = input().strip()
+        if manual_input == "1":
+            toggle_sdss()
+        process_commands()
+
+if __name__ == "__main__":
+    main()
