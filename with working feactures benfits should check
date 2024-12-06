@@ -1,0 +1,279 @@
+import time
+import random
+
+# Helper functions for voice alerts and dashboard updates
+def voice_alert(message):
+    print(f"Voice Alert: {message}")
+
+def display_on_dashboard(message):
+    print(f"Dashboard: {message}")
+
+# Feature 1: Driver Distraction Monitoring
+def driver_distraction_monitoring():
+    """Monitor driver distraction using face and eye detection."""
+    print("Monitoring driver distraction...")
+    # In a real implementation, OpenCV or a similar tool would be used to track the driver's attention.
+    # This is a placeholder for simulation.
+    distracted = random.choice([True, False])  # Randomly simulate distraction
+    if distracted:
+        voice_alert("Warning! Driver is distracted. Please focus on the road.")
+    else:
+        voice_alert("Driver is attentive.")
+
+# Feature 2: Lane Change Alerts
+def lane_change_alert():
+    """Monitor lane departure."""
+    print("Monitoring lane changes...")
+    lane_departure = random.choice([True, False])  # Simulating lane change
+    if lane_departure:
+        voice_alert("Warning! Lane departure detected.")
+    else:
+        voice_alert("You are in the correct lane.")
+
+# Feature 3: Hydroplaning Detection (activated when water is detected)
+def hydroplaning_detection(speed, water_depth, tire_tread):
+    """Check for hydroplaning risk based on speed, water depth, and tire condition."""
+    if water_depth >= 5:
+        voice_alert(f"Water detected: {water_depth} mm depth.")
+        response = input("Activate hydroplaning detection? (yes/no): ").lower()
+        if response == "yes":
+            if speed > 60:
+                voice_alert("High hydroplaning risk! Reduce speed below 50 km/h.")
+                display_on_dashboard("Reduce speed to below 50 km/h for safety.")
+            elif tire_tread < 3:
+                voice_alert("Tire tread depth is low! Please check your tires.")
+                display_on_dashboard("Low tire tread depth, consider replacing tires.")
+            else:
+                voice_alert("Hydroplaning detection active. Keep your speed under control.")
+        else:
+            voice_alert("Monitoring for future water detection.")
+    else:
+        voice_alert("No hydroplaning risk detected.")
+
+# Feature 4: Panic Button with Emergency Protocol
+def panic_button_trigger():
+    """Trigger panic button emergency protocol."""
+    voice_alert("Emergency! Activating panic protocol.")
+    display_on_dashboard("Panic mode activated. Sending distress signal.")
+    time.sleep(2)  # Simulate emergency signal duration
+    voice_alert("Emergency protocol complete. Stay calm, help is on the way.")
+
+# Feature 5: Intelligent Speed Adaptation (based on weather)
+def intelligent_speed_adaptation(weather_description, current_speed):
+    """Adapt vehicle speed based on weather conditions."""
+    if "rain" in weather_description:
+        if current_speed > 60:
+            voice_alert("Warning: Reduce speed due to rain.")
+            new_speed = 60
+            display_on_dashboard(f"Speed reduced to {new_speed} km/h for safety.")
+            return new_speed
+    elif "snow" in weather_description:
+        if current_speed > 40:
+            voice_alert("Warning: Reduce speed due to snow.")
+            new_speed = 40
+            display_on_dashboard(f"Speed reduced to {new_speed} km/h for safety.")
+            return new_speed
+    return current_speed
+
+# Feature 6: Geofencing Speed Control
+def geofencing_speed_control(gps_location, current_speed):
+    """Adjust speed based on geofencing (location-based speed limits)."""
+    # Example: if the vehicle is near a school zone, reduce speed
+    school_zone_location = (13.0827, 80.2707)  # Chennai coordinates as an example
+    distance = calculate_distance(gps_location, school_zone_location)  # Placeholder function
+    if distance < 1000:  # 1 km radius
+        if current_speed > 30:
+            voice_alert("Warning: You are near a school zone. Reduce speed.")
+            return 30  # Reduce speed to 30 km/h
+    return current_speed
+
+# Placeholder function to simulate GPS location distance calculation
+def calculate_distance(gps1, gps2):
+    """Simple placeholder to simulate distance calculation (Haversine formula)."""
+    return random.randint(0, 2000)  # Random distance between 0-2000 meters for simulation
+
+# Feature 7: Driver Fatigue Monitoring (time-based)
+def driver_fatigue_monitoring(last_driving_time):
+    """Monitor driver fatigue based on continuous driving time."""
+    if last_driving_time >= 3:
+        voice_alert("Warning: You have been driving for over 3 hours. Please take a rest.")
+        display_on_dashboard("Take a break for your safety.")
+    else:
+        voice_alert("You are within safe driving time.")
+
+# Feature 8: AI-Based Tire Condition and Alignment Monitoring
+def tire_condition_monitoring(tire_tread_depth, tire_alignment):
+    """Monitor tire tread and alignment condition."""
+    if tire_tread_depth < 3:
+        voice_alert("Warning: Tire tread depth is low! Please check your tires.")
+        display_on_dashboard("Low tire tread depth detected.")
+    elif tire_alignment != "good":
+        voice_alert("Warning: Tire alignment is off! Please get it checked.")
+        display_on_dashboard("Poor tire alignment detected.")
+
+# Feature 9: Lane Departure Warning
+def lane_departure_warning():
+    """Warn if the car is veering off its lane without signal."""
+    lane_departure = random.choice([True, False])  # Simulating lane departure
+    if lane_departure:
+        voice_alert("Warning: Lane departure detected. Please steer back into the lane.")
+
+# Feature 10: Traffic Signal Awareness
+def traffic_signal_awareness():
+    """Alert for traffic signal changes and status."""
+    signal_color = random.choice(["green", "yellow", "red"])
+    if signal_color == "red":
+        voice_alert("Stop! The signal is red.")
+        display_on_dashboard("Red signal detected.")
+    elif signal_color == "yellow":
+        voice_alert("Warning! The signal is about to turn red.")
+        display_on_dashboard("Yellow signal detected.")
+    else:
+        voice_alert("Green signal. Proceed with caution.")
+        display_on_dashboard("Green signal detected.")
+
+# Feature 11: Collision Detection System
+def collision_detection():
+    """Simulate collision detection (proximity alert)."""
+    collision_risk = random.choice([True, False])
+    if collision_risk:
+        voice_alert("Warning: Potential collision detected. Brake immediately!")
+        display_on_dashboard("Collision risk detected.")
+
+# Feature 12: Adaptive Cruise Control
+def adaptive_cruise_control(current_speed, road_conditions):
+    """Adjust cruise control based on road conditions."""
+    if road_conditions == "wet":
+        voice_alert("Warning: Wet road conditions detected. Reducing speed.")
+        display_on_dashboard("Speed reduced due to wet road conditions.")
+        return current_speed - 10  # Reduce speed by 10 km/h
+    return current_speed
+
+# Feature 13: Blind Spot Detection
+def blind_spot_detection():
+    """Detect vehicles in blind spots."""
+    blind_spot = random.choice([True, False])
+    if blind_spot:
+        voice_alert("Warning: Vehicle detected in your blind spot.")
+        display_on_dashboard("Blind spot detected.")
+
+# Feature 14: Weather Conditions Detection
+def weather_condition_detection():
+    """Detect weather conditions based on GPS or external sensors."""
+    weather_conditions = ["rain", "snow", "clear", "foggy"]
+    current_weather = random.choice(weather_conditions)
+    voice_alert(f"Current weather: {current_weather}.")
+    display_on_dashboard(f"Weather: {current_weather}")
+
+# Feature 15: Auto Parking Assist
+def auto_parking_assist():
+    """Assist with automatic parking."""
+    parking_space_detected = random.choice([True, False])
+    if parking_space_detected:
+        voice_alert("Parking space detected. Initiating parking assist.")
+        display_on_dashboard("Auto parking initiated.")
+    else:
+        voice_alert("No parking space detected. Searching for another spot.")
+
+# Main SDSS Control
+def start_sdss():
+    """Start the SmartDrive Safety System (SDSS)."""
+    print("Press '1' to toggle SDSS manually.")
+    toggle_sdss = input("Enter command: ").strip()
+    
+    if toggle_sdss == '1':
+        display_on_dashboard("SDSS is now activated.")
+        
+        # Simulate the continuous operation of SDSS features
+        while True:
+            # Simulate feature activations
+            print("\nSelect a feature to simulate (enter number):")
+            print("1. Driver Distraction Monitoring")
+            print("2. Lane Change Alerts")
+            print("3. Hydroplaning Detection")
+            print("4. Panic Button")
+            print("5. Intelligent Speed Adaptation")
+            print("6. Geofencing Speed Control")
+            print("7. Driver Fatigue Monitoring")
+            print("8. Tire Condition Monitoring")
+            print("9. Lane Departure Warning")
+            print("10. Traffic Signal Awareness")
+            print("11. Collision Detection System")
+            print("12. Adaptive Cruise Control")
+            print("13. Blind Spot Detection")
+            print("14. Weather Conditions Detection")
+            print("15. Auto Parking Assist")
+            print("16. Stop SDSS")
+            
+            feature = input("Enter feature number (1-16): ").strip()
+            
+            if feature == "1":
+                driver_distraction_monitoring()
+            elif feature == "2":
+                lane_change_alert()
+            elif feature == "3":
+                speed = int(input("Enter speed (km/h): "))
+                water_depth = int(input("Enter water depth on road (mm): "))
+                tire_tread = int(input("Enter tire tread depth (mm): "))
+                hydroplaning_detection(speed, water_depth, tire_tread)
+            elif feature == "4":
+                panic_button_trigger()
+            elif feature == "5":
+                weather = input("Enter current weather (rain/snow/clear): ").lower()
+                current_speed = int(input("Enter current speed (km/h): "))
+                intelligent_speed_adaptation(weather, current_speed)
+            elif feature == "6":
+                gps_location = (float(input("Enter latitude: ")), float(input("Enter longitude: ")))
+                current_speed = int(input("Enter current speed (km/h): "))
+                geofencing_speed_control(gps_location, current_speed)
+            elif feature == "7":
+                last_driving_time = int(input("Enter driving time (hours): "))
+                driver_fatigue_monitoring(last_driving_time)
+            elif feature == "8":
+                tire_tread_depth = int(input("Enter tire tread depth (mm): "))
+                tire_alignment = input("Enter tire alignment (good/poor): ").lower()
+                tire_condition_monitoring(tire_tread_depth, tire_alignment)
+            elif feature == "9":
+                lane_departure_warning()
+            elif feature == "10":
+                traffic_signal_awareness()
+            elif feature == "11":
+                collision_detection()
+            elif feature == "12":
+                current_speed = int(input("Enter current speed (km/h): "))
+                road_conditions = input("Enter road conditions (wet/dry): ").lower()
+                adaptive_cruise_control(current_speed, road_conditions)
+            elif feature == "13":
+                blind_spot_detection()
+            elif feature == "14":
+                weather_condition_detection()
+            elif feature == "15":
+                auto_parking_assist()
+            elif feature == "16":
+                display_on_dashboard("SDSS Deactivated.")
+                break
+            else:
+                voice_alert("Invalid feature selection.")
+            
+# Start SDSS
+start_sdss()
+Explanation of Features:
+Driver Distraction Monitoring: Detects if the driver is distracted based on simulated random values.
+Lane Change Alerts: Warns the driver if lane departure is detected.
+Hydroplaning Detection: Asks the driver if they want to activate hydroplaning detection when water is detected on the tires.
+Panic Button: Simulates an emergency panic button protocol.
+Intelligent Speed Adaptation: Adjusts vehicle speed based on weather conditions.
+Geofencing Speed Control: Adjusts speed if the vehicle enters a restricted zone (e.g., school zone).
+Driver Fatigue Monitoring: Warns the driver if they have been driving for an extended period.
+Tire Condition Monitoring: Monitors tire tread depth and alignment.
+Lane Departure Warning: Warns if the vehicle is drifting out of its lane.
+Traffic Signal Awareness: Alerts the driver when the traffic light is red, yellow, or green.
+Collision Detection: Simulates collision risk detection.
+Adaptive Cruise Control: Adjusts the cruise control based on road conditions.
+Blind Spot Detection: Warns the driver of vehicles in their blind spot.
+Weather Condition Detection: Detects current weather conditions.
+Auto Parking Assist: Simulates automatic parking assist when a parking space is detected.
+How It Works:
+The driver can activate or deactivate SDSS manually.
+The system provides real-time alerts based on conditions (e.g., weather, driver distraction, lane departure).
+Each feature runs based on inputs, and the system responds immediately with relevant actions.
